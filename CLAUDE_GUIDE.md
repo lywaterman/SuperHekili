@@ -318,20 +318,20 @@ A: 检查编译后的 pack 是否使用 `list_name` 而不是 `name`。
 | 文件 | 行号 | 修改内容 |
 |------|------|----------|
 | `Wrath/Druid.lua` | 284-296 | 修复 should_rake 尊重 rake_priority 设置 |
-| `Wrath/Druid.lua` | 324-351 | 添加 emergency_roar, bite_for_tiger 表达式 |
+| `Wrath/Druid.lua` | 324, 337 | 添加 emergency_roar, bite_for_tiger 表达式 |
 | `Wrath/Druid.lua` | 3023 | 凶猛撕咬前咆哮最少时间默认值 4→8 |
 | `Wrath/Druid.lua` | 3035 | 凶猛撕咬前割裂最少时间默认值 4→8 |
 | `Wrath/Druid.lua` | ~3143 | 更新平衡德 RegisterPack |
 | `Wrath/Druid.lua` | ~3145 | 更新野性德 RegisterPack |
 | `Wrath/Mage.lua` | 1979 | 更新火法 RegisterPack |
-| `Wrath/Warrior.lua` | 2166-2167 | 默认怒吼改为战斗 |
-| `Wrath/Warrior.lua` | 2184-2185 | 英勇打击阈值改为50 |
+| `Wrath/Warrior.lua` | 2167 | 默认怒吼改为战斗 |
+| `Wrath/Warrior.lua` | 2185 | 英勇打击阈值改为50 |
 | `Wrath/APLs/DruidFeral.simc` | 22, 24 | 添加紧急咆哮和修改凶猛撕咬 |
 | `Wrath/APLs/DruidBalance.simc` | 27 | 注释月火优先级 |
-| `Wrath/APLs 2.0/MageFire.simc` | 25-26 | 添加灼烧维护 |
-| `compile_and_update.lua` | 72-76 | list_name 转换修复 |
-| `compile_and_update.lua` | 78-84 | criteria 格式化修复 |
-| `compile_and_update.lua` | 134-149 | 跳过注释行更新逻辑 |
+| `Wrath/APLs 2.0/MageFire.simc` | 26 | 添加灼烧维护 |
+| `compile_and_update.lua` | 73-75 | list_name 转换修复 |
+| `compile_and_update.lua` | 81-88 | criteria 格式化修复 |
+| `compile_and_update.lua` | 143-147 | 跳过注释行更新逻辑 |
 
 ---
 
