@@ -70,9 +70,21 @@ local function parse_simc_file(filepath)
                             local key = parts[i]:sub(1, eq-1):match("^%s*(.-)%s*$")
                             local val = parts[i]:sub(eq+1):match("^%s*(.-)%s*$")
                             if key == "if" or key == "condition" then key = "criteria" end
+                            -- run_action_list/call_action_list 用 list_name 而不是 name
+                            if key == "name" and (result.action == "run_action_list" or result.action == "call_action_list") then
+                                key = "list_name"
+                            end
                             local num = tonumber(val)
                             if num and (key == "cycle_targets" or key == "max_cycle_targets" or key == "line_cd") then
                                 val = num
+                            end
+                            -- 格式化 criteria: | -> ||, 添加空格
+                            if key == "criteria" and type(val) == "string" then
+                                val = val:gsub("([^|])%|([^|])", "%1||%2")  -- | -> ||
+                                val = val:gsub("&", " & ")  -- & 加空格
+                                val = val:gsub("%|%|", " || ")  -- || 加空格
+                                val = val:gsub("([<>=!]+)", " %1 ")  -- 比较符加空格
+                                val = val:gsub("%s+", " "):match("^%s*(.-)%s*$")  -- 合并空格
                             end
                             result[key] = val
                         end
@@ -112,31 +124,44 @@ local function encode_pack(pack)
     return "Hekili:" .. LibDeflate:EncodeForPrint(compressed)
 end
 
--- 更新 lua 文件中的 RegisterPack
+-- 更新 lua 文件中的 RegisterPack (只更新非注释行)
 local function update_lua_file(lua_path, pack_name, new_encoded)
     local file = io.open(lua_path, "r")
     if not file then error("Cannot open: " .. lua_path) end
     local content = file:read("*all")
     file:close()
 
-    -- 匹配 RegisterPack 调用
-    local pattern = 'spec:RegisterPack%( "' .. pack_name:gsub("([%(%)%.%%%+%-%*%?%[%]%^%$])", "%%%1") .. '", %d+, %[%[Hekili:[^%]]+%]%] %)'
     local date_str = os.date("%Y%m%d")
     local replacement = 'spec:RegisterPack( "' .. pack_name .. '", ' .. date_str .. ', [[' .. new_encoded .. ']] )'
+    local escaped_name = pack_name:gsub("([%(%)%.%%%+%-%*%?%[%]%^%$])", "%%%1")
 
-    local new_content, count = content:gsub(pattern, replacement)
+    -- 逐行处理，只更新非注释行
+    local lines = {}
+    local count = 0
+    for line in content:gmatch("([^\n]*)\n?") do
+        -- 检查是否是注释行（以--开头，忽略前导空格）
+        local is_comment = line:match("^%s*%-%-")
+        -- 检查是否匹配 RegisterPack
+        local is_match = line:match('spec:RegisterPack%( "' .. escaped_name .. '"')
 
-    if count == 0 then
-        print("警告: 未找到 RegisterPack(\"" .. pack_name .. "\")，尝试宽松匹配...")
-        -- 尝试更宽松的匹配
-        pattern = 'spec:RegisterPack%( "' .. pack_name:gsub("([%(%)%.%%%+%-%*%?%[%]%^%$])", "%%%1") .. '"[^%)]+%)'
-        new_content, count = content:gsub(pattern, replacement)
+        if is_match and not is_comment then
+            table.insert(lines, replacement)
+            count = count + 1
+        else
+            table.insert(lines, line)
+        end
+    end
+
+    -- 移除最后的空行（如果原文件不是以换行结尾）
+    if lines[#lines] == "" and not content:match("\n$") then
+        table.remove(lines)
     end
 
     if count == 0 then
         error("未找到 RegisterPack(\"" .. pack_name .. "\") 在 " .. lua_path)
     end
 
+    local new_content = table.concat(lines, "\n")
     local out = io.open(lua_path, "w")
     out:write(new_content)
     out:close()

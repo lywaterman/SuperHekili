@@ -19,10 +19,8 @@ actions.cat+=/faerie_fire_feral,if=glyph.omen_of_clarity.enabled&!buff.clearcast
 actions.cat+=/berserk,if=!wait_for_tf&debuff.rip.up&!buff.clearcasting.up
 actions.cat+=/savage_roar,if=!buff.savage_roar.up
 actions.cat+=/savage_roar,if=debuff.rip.up&buff.savage_roar.up&buff.savage_roar.remains-(rip_maxremains+settings.rip_leeway)<=0&rip_maxremains+settings.min_roar_offset<=sr_new_duration&!buff.savage_roar.remains>=ttd
-# 紧急咆哮：咆哮和割裂都快掉时，先补低星咆哮 by Claude 2025-12-22
 actions.cat+=/savage_roar,if=emergency_roar
 actions.cat+=/rip,if=rip_now
-# 凶猛撕咬：添加bite_for_tiger偷怒凶猛条件 by Claude 2025-12-22
 actions.cat+=/ferocious_bite,if=settings.ferociousbite_enabled&!buff.clearcasting.up&(bite_at_end|bite_before_rip|bite_for_tiger)&(!buff.berserk.up|bite_during_berserk)
 actions.cat+=/mangle_cat,if=!debuff.mangle.up&ttd>1&!wait_for_ff
 actions.cat+=/rake,if=buff.clearcasting.up&!debuff.bleed.up&ttd>9
