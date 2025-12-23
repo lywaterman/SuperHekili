@@ -968,6 +968,9 @@ spec:RegisterAbilities( {
             if target.within10 then
                 applyDebuff( "target", "blast_wave" )
             end
+            if talent.firestarter.enabled then
+                applyBuff( "firestarter" )
+            end
         end,
         copy = { 11113, 13018, 13019, 13020, 13021, 27133, 33933, 42944, 42945 },
     },
@@ -1216,6 +1219,9 @@ spec:RegisterAbilities( {
             if target.within10 then
                 applyDebuff( "target", "dragons_breath" )
             end
+            if talent.firestarter.enabled then
+                applyBuff( "firestarter" )
+            end
         end,
         copy = { 31661, 33041, 33042, 33043, 42949, 42950 },
     },
@@ -1332,6 +1338,28 @@ spec:RegisterAbilities( {
             end
         end,
         copy = { 2120, 2121, 8422, 8423, 10215, 10216, 27086, 42925, 42926 },
+    },
+
+    -- 8级烈焰风暴，用于AOE 5连
+    flamestrike_rank8 = {
+        id = 42925,
+        cast = function() return ( buff.firestarter.up or buff.presence_of_mind.up ) and 0 or 2 * haste end,
+        cooldown = 0,
+        gcd = "spell",
+
+        spend = function() return ( buff.firestarter.up or buff.clearcasting.up ) and 0 or 0.270 * ( 1 - 0.01 * talent.precision.rank ) * ( buff.arcane_power.up and 1.2 or 1 ) end,
+        spendType = "mana",
+
+        startsCombat = true,
+
+        handler = function()
+            if buff.firestarter.up then
+                removeBuff( "firestarter" )
+            else
+                if buff.clearcasting.up then removeBuff( "clearcasting" ) end
+                if buff.presence_of_mind.up then removeBuff( "presence_of_mind" ) end
+            end
+        end,
     },
 
     -- Increases the target's chance to critically hit with spells by $s1%.  When the target critically hits the caster's chance to critically hit with spells is increased by $54648s1% for $54648d.  Cannot be cast on self.
@@ -1976,6 +2004,6 @@ spec:RegisterPackSelector( "frost", "Frost Wowhead", "|T135846:0|t 冰霜",
 
 spec:RegisterPack( "奥术 Wowhead", 20230924, [[Hekili:9EvBVTTnq4FlffWjfRw2X5TLIMc01bSLGTGH5o09jjrjF2MiuKAKu2nfb63(UJ6Lqjl7g0c0Vyjt(W7nE39Ck8KWpgoFbZcH3nB6StNE1SZdMoD6StonCU9HCiCEol9E2k8fjld)996uMekJ)KA7AGTG2)bHcFbLJrvOtrmRT2CZBMmz72TbBRWfKQYMSvzf3pzvbFbmjvWmgWmjdL9eMtOtwKBgRvwMLRKJtvkXc1wPzmlHl4woygNVbLEsbxyVrgMmSHplCoRWUwPdN)7W94jr7HVybuDaWKgoNoW4PxnE2zVPm(gjkBMOm2QzsJWP8Y4LAvwRtgeoxWnwd5JmfGpUZf3ajlralc)LW5PAUf0Cgg1y6vGnyl3UMlpzkEIusK4tNtgbFoxOm0kw00DISgqUgmGmfIulJY4Yf(kaXEQp2eb)lFHP7J5mFmlf4nMXQ53dDHzPaXswHW26knNjvvirhXKdcrpz3XwDamwG1hvhRudzQnquAH2adzP7jakaPnGlXWfzkrSeJsNtsmO(aLXJkJtkwUCyuuAJdsLDeSsOsyIi7AqNHpnS8CqhLUMUPc04f8dEbnUgI2srw0ip)hHr6G0Q2GI8NmMdz4K9DrN0hv1ZoH5l9ruNbMR2c6E4(zFC80hI2aCPPhOR8bLX1ALoIN5Ao0bhM13nUrLDAEE1b)hd2(GjFGQ44Y7bRbFBnZIlQb5r4tf5WB5eomplLVKdunyJMlmqeEpKzC6A)vIeEm7dKqg28Om(DLXZ8Y0zcru1FIOQ7QA8OQUCuvoj8z7v4la39wDinb7MzdmwSxzz81LXN5UzpU(YnJBmCbIIP1y0cVIlJF8XYySGFt0Q0fbx0roLXVAN7SAru5YN(DzvdAsTzJyblxUAh9xJZP(ZgiNYPQ(Pb7V8jJjzb5POR(2Y4lN63XihlS4M1reeNuU45jf)wTWgvQRrEvZomoJ0pjm7qDU77iAUqWzsIhRtA7CihZ5sanMfH8h(2HMX9Q23rqUGBBh0b9Kxug)CeYo7ZX2kcbKAR0rFNPD7D6mtvTrmDMs3NAaJxBWwveQgMv0zXwtsmVa7i8P3)33DZD)gYCwg)X1yjkplxPX7GLkm0CunXYrOdb)xb2vdDkJkJk5lSQmKWgxa7GjxbMGYB)donmbXd)bLe1RB7JQ7U(VOuSkV)30Afx)4t(8RAp)5FZNV82BCMpDStBimkJD0942uUJAjwOeo)LLX)jg0qnvpc0T4k(t6GDnh76A(0SoJDt5WtRhWzmf1htt5GdYCWjDCcVxghzSVex(VAYMlVTYCnbTj4)01t2jZ518LxtjxJouI1HevBwejPx81e1O9NFoSwEkvSXd)1QCOw4ii)5s8x)P5q8x1FUJkr(HMySpSwsxYXoaJ(OdZIp6zpMHVYpe6Vt7zNjk81B1yc(R4pwG)6TJb4VOpTVll9BKo3xMTe6DUX7Xp)AIz(AKyMcoDP2F3SbCNggtc(EPfV(SrhVhk6hFCp0ZVAaLvFSVMU2l17OkA3HKSBIGo52(mKKgBObF7Lt9b2sc2bZjtPQSM6qmC(KQA)YKQ0VoFgt)J0)Bv6VFZ3N0F9oFtcLnqJEsKoH))]] )
 
-spec:RegisterPack( "火焰(黑科研)", 20251223, [[Hekili:nwvVoYTnq4NL0eexyHvAVFCaIDHDLBCZMArnIC2velfPcj1ErUqabinP8a8dGlmGlCJ79ZJXH8wKHCZElLwHlPt7oF8JFZmFZWY8YFTCJFOdl30b89Wo6db4XY3vSQ468II1zRwLVA16q8bLbeHdOKoVl8Ha3c9kp957ImbCV0Ol3Wn9ApADDOsvUb1qTcfLVU0t8EKanY4IYnreopckg3yucZD6ZSCo4mowNExTsR1yzY2O4NG7QPAQTU3D87jOUofLKpWoGsTBgOBsbTvbTK(HUzGUnfuNzH76fPi6Dit6X2531phaXTuiReO2dy3H(mVKUtVHjK4y1RgRYlgR(XXkbw3VDBMsEqQ3XQPKmBAvmjs69SHpWveHrYDH(3Mw43zt)30dhZxsD5RMlpfQ9zY2oR5akyoUXYBYSGE)y1lhRwNkZlqHTavShR(Lta)HhX6AaktyTazbSdz9DjoJ4PNv2YZNkSa4did1yReDXAwXrVltt9pcGbtShGsXo(dwaZCYlMsEuHngpZ5TiSNse6Sjn)bRPwbxsZeRBnsAPf0aBrZs(vtVZaYSoUpwTUD1zESyh1dKUMizZz56NGL1jSGhmCyjzCZmcmbprY0G0ISft2BNEWDQHUMSTwJZhot2jWNz6uiYWPUGTjZobu1W8Tl(Jn1tRJUyg6oPVrQZts6OUz3bhMV7yYEkAUDEVpiahrl9FtSMXDdKPqUFoJRFkjvCMbHf2z0own5P8Zn5twPvRKV)9GvCrrOZIH1DGFHsHfKI4KwmnalhOCS2kvkjO54SThxeFPY0zYPP3)p8FrCj9CHsHC)Yx)JHF6sAKXET836rgyBn2zS1sUkuFm0s11eRQ103fv5)Ufry8zBn8EhnITtYJB2sSrjHw61LejACU)Z1eXE4DGvtZzeAcFVVji5V)Pp)9)6(YnhO3wde84R0HwUzRuHb0tFaN2wA6T8yK6EPY)wDzD8XvE0x3ifcm(xc0rQ)nM2oIiQhwpmw9gf0lOhCcS988INt8rA74(Zh(JV8WF(1F6V)29p857F4JF4zuOY)5d]] )
+spec:RegisterPack( "火焰(黑科研)", 20251223, [[Hekili:vAvWoonpq4NfUG4)WgTjDx2IeWHFoXL9s4CCNypT1ADSd2oT09qLqIlCCL4bGdiTh4c355bTI3cg7YU1jnQa3sZ85V5ZZ3mtAvE1BQk9BAXQYwGFfSGEqaES6YItlopVOysw(K8PfpleFJYaIWbCMolNqwvw3jv(xRRQPx2I8QlNwvUukey8vc0XRkFLPPvQqX2z1B2o7vkOtGBNf4)K8ItkMmmJvLkPZ7cjsGZHoLNE8YOsbUxA0vLCtN2JwkLkvvjQHAI)Q)VYtSeWPKAKXfrrPuopckg3yucZA9Ew2hCahtsZvJ0AnwMSjwC6H7S(AQPUZT75EOopfLKVHTcLA3aqpnf0Cf0q6hAha6IuqTMrY10ueDoKj9yZWC9SaiULczLaz)GDb6Z8skNEdtij35LBNLxSD2J3otG1DZNNPKRK6fSA6sM1VkMejnpL8nCfryKCxW)kBG3X6)20dhVVK6YpTV8c5zfYqn2ir32zp)fuZtuAEqHAFMSP1AwHcMJBS8LzwqF12zeQjPxGdqHnazdeF3d8rpG1TeO7iRbOMd7MSU2KEM4PhuqZZpUKPQzXUUAMMCwcGbtACaLIT7hSaMHKx0N8OcxA8mN3IWv0fHoBsBXgRPwbhstVM6AK0sdOb2OTr5N1pNbKzTCFSADXP75XITKhiDlJKnKLZpcltsybxz4WyY4PdiWe6wsMtKwKn6L9I(hCHAt7YS5wJZhot29G3Z09HOwr1bS1BQkGQggU3XVZuVFr1btxRL(Lsn5LpWJWclmAhRMmq)WoQX88qIDeD0761sg3wqndYRgUFAYXKss9pwczRHvJUG7FxgSWi40JTgSwjV(AWkoOi2AXWIuWpsP0csrCsnQdWYbAlFTvQusqZXb7Loi(XlX00)Fd)hexsFisPqUF80)q4JBnrg70Y32HmW2ySdyRH6kr9Uqh3JwynDTrv(7TqcJpBUH35Or0fsECZyI3NeAmdlrIgN7pUMj6HRbRMMtDH)GWk6R0HdK81DAp8C6)deIcD(LHl0p(YT)4J3eo7U9J39(VE3h(2t(53V5UBV5Up)P)Jcv9Rd]] )
 
 spec:RegisterPack( "冰霜 Wowhead", 20230930, [[Hekili:fJ1FpsTnq0plOkT3Du2S)4G7a0DivkQTGApv1qf9VsI3Kj76Eo2bBNBzpDkF27yNnjoztwOuHQqcYAp(nppEM5ztWIG3h4Nq0qWnlNV885V485ElE6Y5p95b(6D5qGFoj(wYA8dojd)7Fsku6YOpi2UbijMP3Xe4himkrHmgnzJwNRE5SzB3U1BBLDEXISzBfA2TZwxqtGzXmIsbQzzi0Zsnyoljxnvk0envWNgleSeXwUAkzfLr1uqnn)oe8vfuM(T8Gvdt7lrAKdXb3G8FdnjbQSeuXb()g6RxwgvTdENllPX7MEhq5QwEo1YqACf5MA45uddrsCuww(oFixdzRazzKHByisksPmK7FxzuxoGd8nJgi29ys57WrXH)DjG4VIGeGeBaq5Lxp03F9mImMWHWvskJrj8y4j00RLeAYKvfPPEhmTNX1hfkkxdmgeRni9OphuDMRzPhXlXc(FxiHWmcNeUgYmEP(7W4ne5AqD1YHxBMGPbEirMjKM1z9DbN(XcOAWJ4xvrwMGhUftdLHadYaUMWS7XCq7zwYDWK1SD5B8a0goHvzShWjRyqYWWMkIlu4Mznn2G1APOiFsfyHjcTNZ8xpFyiY3jfRWehBaFLqPQp6FdKskyTh82OxbgJLyvdJ5oUDaLgWDeJINeXjx3ouyDkxfS)yDcOlazuPuidPMC2oapEy7ljwHiG1jH26e3b3NWKl2I57oJNYW(wHXKC3bZfMVEsHccfPPHRXn3IUbfwsOItYn0YyvZavzNnmOkJToA4mUeYi4)(QlMBlf)tfugr47kJ0sk)wqRWV2GLGrejWpb)xHEdi3sn2z6GrtPqINlNm0GI1ZQwaFda5MMjaCp(lTOmcRfW4l(JDyZ4YitoaAaLVgpHrFKw36jQQUa9fndtiWiNOqXq6TLQ3GKAVDRWYdCzY9)mLkXL8ACWomlbPryQLfM41PjGniHTSUh4Ef5p8q1VRObgXdTDZ8uAuB56fNn50kS8sRDsOXXEuEykJUEJ(HhCnO7CN15WUE(MA5dCkwmHPByoNNdTBpbDgS(m8QymkgQPzWJpY(4aA0SpA4YkS1hVfC0E3fTIrV)EImXy((YDGdzyZ8xTCYJYe3HUTBok3K9AtnhCnAZjS2ZCIs5lMp5qi2xZaFkNjuMcIVoyQ2P19BQMV7YwoVZofW4PTd9NRo0mrtB9owv3K3lpwF1LDGhUteBfg7yZ5ZhmrjW)o8SehT9Meb(BjsoUhub(F4h(JBE7n)mkzxg9(nyYpnlxiXAIutrXjjv9tpPmscFSaddjyfLWu)rk0ImSbwITudtyuyjZVInslJwS8LMwMC0X25pzF(4FDsvnCZVR79HJF6IpDMNPl(BT(3SSLOtS7hSmNQ0g8d8r3Urid8)f4w8Mab(2zS3XRIP4N3yVZx1sd8DB)h4V3HbVoqJXdJDTJ0SKwzad(wPb3bB0gmyCURVCve65RN2ZxXsSvNKsc8Fuz0rKfCy1GYkgSFMlhA6q3Jax4AKRwsp7U01UgTLEg9CJroPRMyEZIQY57TIxm6(VJ6tz0KYObuGSJpUkuz0RkJUyU7P(Ean(EX8Eo3CDzjnVY0VsLRwF1OBz91IrsQC67oeb(FuPZ9W40YO(IBLrp8W(ZKregIUgR5lJoZEiDADv7OIDvaoUGhIKns2V8SLLJj8zjWHIFnxXQts0acHLrxHgulgwg94JUVDktAA2A495hN3hks2dOMqMfTXBC0viZwcS0UfXokvAuTaxR9AH8z)7HSNgPDS((WvV26Nl(24N(I6wFD5O(AVC(bOV0PDrRaVfSJ2ERV4EVgDlgVtxTuTnn7sh3lHCmNLQ2yX9axBKQ63cBeup3b1MRjybOJOOZTdCjV28w(9VYQriDGEzh8U2ED0o4)HGw2AECCBt(HFG8qAZD0l)sa5G57(s7d2mnt3OQpA029D32O(YofbDER(X1(h(14oxOW517nk9JfvAFtUDV)F8sfJx8AFWU1f7lJ79ODREGBXv7unxWy4Ob(qENRru)g)G2)e8pd]] )

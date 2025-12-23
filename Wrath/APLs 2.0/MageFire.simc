@@ -22,8 +22,8 @@ actions+=/potion
 actions+=/use_items
 # Regular Rotation
 actions+=/living_bomb,cycle_targets=1,max_cycle_targets=living_bomb_cap,if=target.time_to_die>12&debuff.living_bomb.down
-# 灼烧debuff维护：强化灼烧天赋满3点时，debuff快掉就补灼烧（有ss暗影精通时不需要）
-actions+=/scorch,if=talent.improved_scorch.rank=3&debuff.improved_scorch.remains<3&!debuff.shadow_mastery.up
+# 灼烧debuff维护：强化灼烧天赋满3点时，debuff快掉就补灼烧（有ss暗影精通时不需要，AOE时也不需要）
+actions+=/scorch,if=active_enemies<=2&talent.improved_scorch.rank=3&debuff.improved_scorch.remains<3&!debuff.shadow_mastery.up
 actions+=/call_action_list,name=aoe,if=active_enemies>2
 actions+=/pyroblast,if=buff.hot_streak.react
 actions+=/best_mana_potion
@@ -33,7 +33,9 @@ actions+=/fire_blast,if=moving
 actions+=/frostfire_bolt,if=glyph.frostfire.enabled
 actions+=/fireball
 
-actions.aoe+=/blast_wave,if=target.within10
-actions.aoe+=/flamestrike,line_cd=8,if=buff.firestarter.up
+# AOE 5连：龙息 → 9级烈焰(瞬发) → 冲击波 → 8级烈焰(瞬发) → 暴风雪
 actions.aoe+=/dragons_breath,if=target.within12
+actions.aoe+=/flamestrike,if=buff.firestarter.up
+actions.aoe+=/blast_wave,if=target.within10
+actions.aoe+=/flamestrike_rank8,if=buff.firestarter.up
 actions.aoe+=/blizzard
