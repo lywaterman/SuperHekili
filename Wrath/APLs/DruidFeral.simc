@@ -37,9 +37,8 @@ actions.cat_aoe+=/berserk,if=energy.current>60&cooldown.tigers_fury.remains>=15
 # 咆哮优先级最高
 actions.cat_aoe+=/savage_roar,if=!buff.savage_roar.up
 actions.cat_aoe+=/savage_roar,if=buff.savage_roar.remains<3&combo_points.current>=1
-# 咆哮快掉时攒星（剩余<5秒，3-4星即可）
-actions.cat_aoe+=/shred,if=buff.savage_roar.remains<5&buff.savage_roar.remains>1&combo_points.current<4
-actions.cat_aoe+=/rake,if=buff.savage_roar.remains<5&buff.savage_roar.remains>1&combo_points.current<4&!buff.clearcasting.up
+# 咆哮快掉时用斜掠攒1星（比裂伤省5能量）
+actions.cat_aoe+=/rake,if=buff.savage_roar.remains<5&combo_points.current=0
 # 横扫作为主要填充
 actions.cat_aoe+=/swipe_cat
 actions.cat_aoe+=/gift_of_the_wild,if=should_flowerweave&mana.pct>settings.min_weave_mana&energy.current<45
