@@ -32,7 +32,8 @@ actions.spam+=/hyperspeed_acceleration,use_off_gcd=1,if=buff.eclipse_lunar.up&bu
 actions.spam+=/potion,use_off_gcd=1,if=buff.eclipse_lunar.up&buff.eclipse_lunar.remains>settings.lunar_cooldown_leeway
 actions.spam+=/use_items,use_off_gcd=1,if=buff.eclipse_lunar.up&buff.eclipse_lunar.remains>settings.lunar_cooldown_leeway
 actions.spam+=/starfire,if=buff.elunes_wrath.up
-actions.spam+=/insect_swarm,if=!debuff.insect_swarm.up&(!buff.eclipse_lunar.up|buff.eclipse_lunar.remains>7)
+# 日月蚀期间不补虫群，只在fish阶段补
+# actions.spam+=/insect_swarm,if=!debuff.insect_swarm.up&(!buff.eclipse_lunar.up|buff.eclipse_lunar.remains>7)
 actions.spam+=/wrath,if=variable.solar_spam_now
 actions.spam+=/starfire,if=variable.lunar_spam_now
 
