@@ -312,8 +312,8 @@ spec:RegisterStateExpr("bite_at_end", function()
 end)
 
 spec:RegisterStateExpr("bite_before_rip", function()
-    --combo_points.current=5&debuff.rip.remains>=settings.min_bite_rip_remains&buff.savage_roar.remains>=settings.min_bite_sr_remains
-    return combo_points.current == 5 and debuff.rip.remains >= settings.min_bite_rip_remains and buff.savage_roar.remains >= settings.min_bite_sr_remains
+    --combo_points.current=5&debuff.rip.remains>=settings.min_bite_rip_remains&buff.savage_roar.remains>=settings.min_bite_sr_remains&energy.current<=67
+    return combo_points.current == 5 and debuff.rip.remains >= settings.min_bite_rip_remains and buff.savage_roar.remains >= settings.min_bite_sr_remains and energy.current <= 67
 end)
 
 spec:RegisterStateExpr("bite_during_berserk", function()
@@ -322,14 +322,13 @@ spec:RegisterStateExpr("bite_during_berserk", function()
 end)
 
 spec:RegisterStateExpr("emergency_roar", function()
-    -- 紧急咆哮条件：
+    -- 紧急咆哮条件（保持offset不同步）：
     -- 1. 咆哮快掉(<3秒)
-    -- 2. 割裂还在但也快掉(<6秒)
+    -- 2. 割裂还有时间（比咆哮多至少3秒，说明还没同步）
     -- 3. 有连击点但不够5星
     return buff.savage_roar.remains > 0
         and buff.savage_roar.remains < 3
-        and debuff.rip.remains > 0
-        and debuff.rip.remains < 6
+        and debuff.rip.remains > buff.savage_roar.remains + 3
         and combo_points.current >= 1
         and combo_points.current < 5
 end)
@@ -340,13 +339,14 @@ spec:RegisterStateExpr("bite_for_tiger", function()
     -- 2. 猛虎CD好了
     -- 3. 咆哮安全(>10秒)
     -- 4. 割裂安全(>10秒)
-    -- 5. 有足够能量(>50)
+    -- 5. 能量在50-67之间（打完撕咬后能接猛虎）
     -- 6. 非狂暴期间
     return combo_points.current == 5
         and cooldown.tigers_fury.ready
         and buff.savage_roar.remains >= 10
         and debuff.rip.remains >= 10
         and energy.current >= 50
+        and energy.current <= 67
         and not buff.berserk.up
 end)
 
@@ -2951,7 +2951,7 @@ spec:RegisterSetting( "druid_feral_description", nil, {
 } )
 
 -- TODO:
-spec:RegisterSetting( "min_roar_offset", 24, {
+spec:RegisterSetting( "min_roar_offset", 25, {
     type = "range",
     name = strformat( "使用 %s 前 %s 的最少时间", Hekili:GetSpellLinkWithTexture( spec.abilities.savage_roar.id ), Hekili:GetSpellLinkWithTexture( spec.abilities.rip.id ) ),
     desc = strformat( "设置推荐 %s 所需的当前 %s 持续时间的最小秒数。\n\n"..
@@ -3151,7 +3151,7 @@ spec:RegisterOptions( {
 -- Default Packs
 spec:RegisterPack( "平衡(黑科研)", 20250820, [[Hekili:9IvtZnXrt4Fl(Ik7kgfjBmWHiFiCj4dKdIZ7UJwnsAlVFOS7SsLRs1wcsCSnVycoXHYGnfMcsGaHWBkQIySX2)ySwTIt8xi9SJwTFRvKKIl2sZ09t)0Fm9mT4kYDnUYvrem3vNRWClu4sZviFXcN)cZXvMSstmx5MiXLr1HpOIuG)A)2xp4rpA63F0wopDlN93EgQeRiRHQsbYqZuxeKITT9n3fKW53Et)n6YvUIPKm5kQCvczVlwybqTMyrURwSix5gsvRIzYGne5kp40717GN3)MDh8Th37D7yV66oh(03V6Moh)h2p8WEhE7VcVSKSu))Cd7BDxNnw3E930749oR7nSwYAP4S4SU3zWoBn4hwJc02p8SUB5rcQ8dE8Q2pzTZFTIfC1E3FU)Dx7dV7(935Hdo5)B)G9hCNJpR71HV6C9xaFyW9EHZjpXAj7tEUZTFvVJ(FohTjiU1sfPBE6UdUFx7n2S)lFS9bhWK5dV7w27UFVd(P(V(zm4h8xpW5xpQ4LC2)60n37zx5YxU3bV0(WTD2(z9oyZ(78kNnER96VW(TN2)17cow)9(9Hg84tbzaSh80VJXjgKUo)Cuka2)j3DWJ(fgrT)XB1FV1hsDyRVFva)3V2n7V9jmb829gqkvxRMKmKirIejnvJ8n1XIAkvqKpR0NRG0xMxRgpPbMVTKC1zLQvAkZM5MQIzTA5RlvJeC38MnTwkjyin00vngQCYIOOPPUSKkFnnDLXkytn6A0S2WDH1erYY8SVYllzqMLwaxssvIeukDt14cH0WuZrxVfMhRIvKWgloFM6z0e5YZwiDjufzCE6c8QATZuZAsgncq)8uAcY6betiztvKoVhMZ2cjBIl5g0XIYsnnW8UsekINiqgAYzaKRetaqHHyKFhMPD64hqcz5mqNgucG(uPaFUP(NbpdfrKkpuUlME4ugzq4rnBklHRwQqNoFJjwFfEIKc(Czi9ILMVqwrqxgposWsftkjIl9eqcwKis4Euq1B9CrI)EKEI8WmbF6ijrp070jAE3BNzcEGHIdyAdcsVMKU7XxwCb0bBW3whrAa1Z5MokAEeOtN4YRJvqsQgFbZi59apFDXQD6OO1ssT(mXOaTPLhfMQk2fvV1OmGPxm1GECIyAJtveXuhNSNbT0IRicRlH5hzsQtsqYyvsEjfio1cxLpGm5XQuVhCG66AMn5vWkvW6glwAH0DjigGfj8gTrd7dp0TcUEOMfd1dEbrdWZPQWGoxDzyP8dx3JkF0HWusH5IkQx(B(ywWn)gQvDyOgBHvKkvFD81I2cc0Qb8ekD41nqkajkILXGzH9N10GMQRXdfsLk6xRgPlEUewDOlTObMqGaQH3zcnn5QATHRuW42OvIre2fKF6Tl1GseSIXNEtNvRGykmHv5qlKePUxdKe5(fNjM5IxcM2Txj4qPCvyWsq4rmHpcMXzpM8XBZWwVHPUUe05fEtylOKg2j4d4HqJkn1Wv(kkn10jaUcxWsGbHLa9Dog5TwIRS7NOtkqp0a))QUZFmKlCFjxzrDOCb8nUYtzjajjHCwctBjmbn0Se60XsiutnlHflzjSaBNH9DfMX7vTaj8rHJa(Z44s82qUClL(h(2WtbQbMpvdKjmUvlumo)eqYO9Ldr0WnT8TqqLOgAHSjBAq5vPcWqOtYvdzkt8Y2U)HecAAVH2nGboG72nONXPcncn4rf6A8v00OLoLd0hXvkFAb2Hcby76ycVKbufKuw1d2OZhWko5zJ5sFjZeMX8o75JCKx4hcyQ0jLgNeDDpZ4gshn7ZKEec(uAtNfOunYGDzEMiOYSX5gFmlIkbhVJ5xUrNX6sP0SmHdkPZ8uAEMw9RBTqcKsdCf4ojF18WL(j4rU0FYJeUNWvUHz0ieibw)rAeV52cAKirQeYqzBK0UVXTZAQ5KaCiG1Jw6NT1NkwFwFcWkUNakmQnvc92YMczmPNLaCrtbw4WF0mlHZn8C340KEh18fIxw4nNdLWx4FhHJpv4Ks4K0moHdpYgLWx8JMWTIosys3VoYeXIwbtVx6)iJpDScRrZ86g4Ixx6V)mXJpbOOBJLkidC1VwnXFuvKjTHkx5G)CLUAX93]] )
 
-spec:RegisterPack( "野性(黑科研)", 20251225, [[Hekili:nNvtpUTnt4Fl5sGDdwdlV2R3fyBo0C69sU4Cw00su2cRKOaf16yGfg9wVfGa0BVxkqpeG(xO)FAW(VOdj1huuuF4Mnf9qc2LC4mdFMzEMHADDC)G7gFmN4((fZxSYzXIvZCwU425lC3WpLsC3KI9EaVx(dNIOyFXb2LhgX)FjU7C3KLs8CFVJJ7MdH((e5A(Kmp3nVJgNggr8pVD3PZBFxeo3NCERWkx5S4QfRC3efMXZK6JGzioo5beMsGfEV0TYZiiAqaAVNV7gWaESqoHfIbplmgu19N36m3Dd2JhstC3qsys)KKG3bM19NC5WLsOOsj2ryze2dgICTqeVtEreWfy7jGlb2V6qX48iDBlmYmVCgJKWpV9TN3EZ82UAddSSFdKDmmLGeqqZZX1WLkmrazOeCmrh0ctc516ZdhfHu)csiUneP(6Sp6u6Hz0yscCbqEryyNtZkoX5TV(82xbbW8GGzG)JzE4mEyY(z5P1gmadQIGcczW)ry4iBa8lrWC5WbZv9BRwbpL2MjcYZGu5e)38iGacfotKK7JIWEWvItqE0mE9MX4Weo8pJ9RuxY(ivmvPvZ0Pg(8nnJiv2GetGSLeVtvgPwn1R0qvR1rinVWqSB1fBOW3DD4EnXNZBF6PZB7gFg01HO)hgSoBK1mhj4hR5r(xnz3O8k7anhqjpCJcuokGYIVSYepknYNESzYLUN1Djt3kfUU5P9DXL7zek(rBLnt6W)KkORYcvsZ8P9wESAu508weILH)hXr5aSmXNiVGCgKwcxoKFEC8jWdF91ZNp9jfZ8mbzeItr(HWru8SnwQ0pkt0Tf9lm4Rkmyz(oyQNmxkJdDxVFvPPAwsnO1UUYAisugS78kJxG41gsa3)WKvxz1dMAZuui3kJWddgr1V9lGKt0wczjc1H2ETPtYic(KS7VTZDQ0KLaypCrDaSRUqG9YHpl(uhoRnq8gnqSDwwNG0YzR(hbG91iYocYf(vaulxxgwEabzeahXz9tCEGGJ4hML6XLZgC9k9o)WmqI9fvXP0s2pZcJsXTkXa8IqGdTJMKNbWbHTws0JwM6DElq(5i50MOytc3dZHGcYzNKKDc(SkMq9nlWzf9PZkTkUdWy2minI4dtT5rIeaCBhEvt4rACFrtijRNODsjzBzdqb6uQcZ5gvniRCbwEsptmEZOn9RSA9QwapcLtjK4qsMSH(Yk3fft9jkQ7U846NhmsVE9lHxFjo3yDSBT4yLJeO3W0aTw0WQIdCbGXD9Bttvpw1AoZMCCIHg0buskJ4rJ3H5wMrR9ij7dd4I514hiOJqFIgt9eJzpOVz)Skgoi)aLLyseD9q(tRSOHUXnF4In(iEDe9fCQvnEQIxlvUiq65NZez7fBOyUk1JH0qAiB)P6jab(4BxpvULhobjBbIccUWHK7M91I9UE(vt68k6SQ9GKACV9hFnnM8LgQ72i4X17kz79Ol7kzIZ9L2Y5nrq)uO3Q2JBWpcdCJy0wVBZOjWK62uH(0OYYapkJLNYPSYUvcSPTOX58WizRgLCfbuOUKcDvHPqYQbfyFfMiJbAoynECVqhTguxsM0x3KH9Rxa3sviuc5Dj8BQIfA5rzhyetsL1TcQ)x)wWWpyoJRrBiYh9izzisJ33PEMned1FUw)VpU6i93bQ4DXbr0Je10iYBhK1GvZ89wjOkuF2SyyCyPmiX(DrjTuRy0SLXW9TgfjBXWZywmLHG8ICfmDbFFafrV7WFIZVVCGTBl(TD)vuAQNqtZ5zH(KfJgtmzKhLR0D)od3qlP97vtWjYdXctrj0JkLyr6IAkqmv103sd02TvoIdLJEG4bs9weQewR)VWZqDWw1YuTyEAu)3zZldI)2oOf92lT4vteqEm(JLmFvegI1JiKJ4ttvCNk(1UexWViuSOuewuDKmgkHCuKHuWIRbHw5Of8Ma58yGcJgi1VVwj7WkWG8Ui1tJVpmDa(3Y7oKDr9cP5z7GTqJUitknmXADxbXc7iqgi4WHPAlktkfmr6flTQWQeVzjPgBwLNIeYnmJErcMAqKzMJDvEfRQB0l)6C4fhhBpKYcavBF4WeFtZFxVTMDS9QLHJjf9ufkSIjZWjM20l6feS5yTFB0OiR7VVrlUsOq6U5JNm0z53)zlwm(zlAtyQbVQiL9HTetAo0GwD0ntSy9xGVfGzBqslV7z9A7nVeNz(8P9pvSC2MJyM4BRdpPgKnx88A3np)7F65))Fy(xzw8raObHIpCO7MhHRIqVA7MrZzEIn5LFfYN)Lp9x)8xM88F(5V(Lp)1F7xNcB5(3d]] )
+spec:RegisterPack( "野性(黑科研)", 20251226, [[Hekili:nNvZUTTrq4NfFjqUbMquXY2bWPhAo1l5I6zUAf5qjctYLy3Lwragc9wVfGa0B9sb6Ha0xH((0a)w0z2LII)S0M2gPThsG1YHZ8TZoZ3m7Wa)GFkyrbFxQGhr)5TGuLiYd(WSPZM7pB2fbluIszieSiyXQYKu9pMhScxSacd(GVFWInjrrGzTiqfgS49ISIKuiA)Yv72V89P8Yiy)ssDN5p7msHrCn00aPjkTIm(kGlzAE(n4p(Gbz8qnHMfH80uM9hms8GfqoFfALGFW((SCEg0qdSK8eDGgntt1eZbzcWItK4)bsEAl9ekt04Z5blwNURyJNidYzIywykhFYoVkr3V8v7xEcU9kJJ9ctrlgYv6K81ELfKfFttlc5s(AOLzkvaQ1y26WOGf(nnRojdDvxVFP)usrN3urRWdgqEttnHImVPiz8Y0rAjcuEHLsjKR3V873V0QdpsfE4zBE0RVf30KM8Ot9iwkpeDyAGfku6JpmJNKRX)1551QlFDkWOtfRwjmFrtmF41g4GO2oqgixd5H7QnePQlBV9RnwhV0vJogaf(Tph412hTF5D3TF5W(iYm4rCd7O2Mu0h6p0b2fuicMhuiHqr2kUUxotgxEdf(Q3aSTi8gqZyKCzrRy61jX6MVyvCDRmj9gHmx9qQSxQqixZIfYSrJJi6iYKrtVwfkALuuioKLD8auBTexao8iMie8XdJHiWyBROEvisRJmoD)E(bf)w8KHjfdEYDCFvRLxNIbbySCpxKoznMMZIlL7gzImKJ5f7ogzGKhVz6ztCXnzWG)CBW50thddZdyitiOrLHcrAKyBUxd07jbkQxHY9oYO94QSb8Doj6so8nNU28mhUqlGBXU0nPyaOO2ikrMG4uXwqUf43cgBGHtCVIqRFtbAY(kVmKtWidJE(qG585pnoS2XEJY3uf0ZLzcjtcrLw6BtgNnFQxU0)2HQpR64V49VnVLJLE0EIsTkjcM1lRDSOzuqzq3XKoWW6CmIxL5Eqs07hvkXxLv9aRON4wAhhlxn)uRjnVKmPGLl2AvIdPRQ1JIzRXBF3qEoZ8twC8tKQbT5wEIPybthB0w1bezJofjC0a28NmbTrtnKSsrx80uuFq6qVUxVIU8SjKZoJ)XQF)6AQcA9ua2Y3HU3Rrovl37qItmlKIPurCr7ROKSCylfBWPTul3OdWy5UXIw94cFCxXX21mc1L)cH9q95yd261igMxjcteLk2QKbBhRE7xlnjmB0zygPXEhWO2QSlAHvagiI72KIglAInjkWMzk9sVQfVD(4P9Ba8L3AYHTxDQJnVZVfRTKFZGopBLlsIo0I0sDn3BhYC)hYt3JBcdFFR5Mu(V5)jLYnfp8BXfQ2GBKrWegBzcNaFmeukgytpRiFnkXs)2OUqVGCNvmOfNu3exVJSJ0bK)035wd9exEP7ce07mD6P2q(5p4g30RrNBW3TTJdxQQLd7wEAjUYKQWdTeXlLUfvMLTd3JV6nicURQ(jDjBMwWIsWxXo1GMl1TvJhYGNuzWd3Rdn1DDxsP5H3C98dMQ9ff71kXdzTQJ6JAMoT)UjZpZPjpnyHOWqjMexPcgKQq9m1nwmxCFexUTxX8h0dnGsEvxmxfKD9vd(KAn54a05nSNpwq60X(4Up3J(WPh0j(UyS4RFu2GoPZ9M)SCGohVsRSrx3N(LmCRzps)GDZmE8HBTdP7y2KCfb0hD6jTdJhAemDvRXVebXiE6tprGcnAMQZwPZUvPzBaEkXr1FegnWnjKEJTAdDDP59ClUMas791MDfO3TaGigpmesbB3FJ8udtayRe5LkmQbKxAQiWoVi0sSx12KH0TXL)puvzmtg40EPQYY8bh17rGzmAVjez7UgxGQftU3dVB3HeBQv3ll8fB6tCADZJi9El1mkKLaktu451WLLjIaBI2qi(yAy32X)wI6Nc463M)4b2HHdEaso8wZAz1dZ4R7ffEE2SRQ73G(yME5rotB4vx2HX2o8O6fEOB)o7jG6QwCR2Wp)pCrDIEZb(7yETpojEBh6JELToe7VZ1hYyYaORooZ1hQO5ON68rwg4Rmyo73YLuNNk6RLXlPHKhS4()4t3)B)jnPErCcvHNeuJSY0hEl8gJxU9NeZBQV)LNF1HIZ3)lF6V)5Vm5()6ZF9lF(R)(VsGk4F(d]] )
 
 spec:RegisterPack( "守护(黑科研)", 20230613, [[Hekili:vI1wpnoou4Fl8cIoW0nfOfwj68Wk0kb7kMrkODFZjUooflsIJCCaXQQ8BFp2oxCsC6LhMrPoh)DoNVZvcAb6vKFewsrVCT3134TAXnZxCR3QRVg5l)kNI8ZXK3XBHhYWPW))NuboPk8vC27vHx80)mtjXxjCCKcPcEPGasH83uYsKpLH24g(fGS5uc6LfWtVXIIOgrPfeK))YL)9FvfwRQhfLSOgn(lbJlysgTO65QNFLVDBcTkeh9boJqbPeCjwY4zWtucpnLMfP)Drvidou(ginjbxa)MNRFXCWbe8ywcy2yI5OC9L3GLxU(3sXI3d4XbWvd(KLeDflE9zL5NF2MY445BzXs73oVmV6zxWiFJlYkQVSBrIycAWgkweeZfP7v0CU2jFU9TWzeCssG5NbjSc5vQa2AwgtAlvzbnGjPPf2h2ax3jVbXEbeHOraKeAcekuV6k115XXbBjrRxyFbrz2yLRDgmNQ8fnD13fbY6C1D(GgqZOPqq9h3EuyonE2xFc(SJrvCdi3hybdVjHAWxYsPbsEqeJE1h4Ks66lIOALjfy4gzBdIktt)sz8345nB3ojwSLkNBDXdOcvTruqcMOy1gTCwTwAogWF3UHNviHQXhwEs4hq4a3XZxxqLSyfn0i9CNgIbAlDMdfrF7ILF3PXmZCRaAsbDT3bmSuGaLW)g57tyrNpuLcQcIIhUFY30I0Xhogzv7HXMYdCsANc1qtPqwug5RHipoTysF)25lprEPZOu1jGrfJPcgniwv6eR6)Q8EOEhArskc4CsDFpscipbxiH6HE98QXHMjGHg9BxOGsP9hw4ns(nq3gQ49rNNIltgJIc75KsHGMj)rn1RK0q7xor2KoSE50HsZ7BHldgTOBFyqDKP1gNSZpghgD4sTiFy6)40AF)C3UP9Xr4v8jl3ymJi2vEdtqu9Yp1GB9DCgGRFNoit(cYPcm9sla82FqFLBTy5ndWd5)bybG81BIS07oK)NyHQHEbY)P0CUqQ2GyjSoHg4Qq1qNI5vpJ81pPxvIgdgReE8f9Qt0mfphH(JMLhq(dNdBUDGz9jvTpsc2G6Yn3ODMSnEGq3ylKzg9ajUvjHftPSQ2BmXm8bqSCGBqG1RGKqSAfoNtydp3WqDtTRc)rv4TDkEWC7EeqtWsP6vNOQpEnOq)Ujr)SQqBW6RhKk(yItocYC4EWuHUl3uQPEcAxJ8VOkCQ9f0uhSZqv4SQWD7G1rhT5GgWAhX(4MuMtYuoR1uSMEy0SZz5vHpa5)2Mq)glT5KJTcwSB7Wnq6oT2rKj6Kv7j6jOiFVwhZ502QWVb)fj6c4VpPdoRTQ5uzYjmrDmDIHUA(8(dkHRrZ2C3OM4UkBpY4G7HEodfJv7PenCvFFyE2v66bypyPNdkZHy4XtTnDb0TsC0fOJTSxnsBgqMIRfK685rJ4DvB3PaLfR9HfEDyygapQZ)Wrg1ZCDnZWPUSNWQ7Pxhz7wTQk8YjRe0zs9fWD2MwMwOhSMvN1R0QlxC6bw7zlSoyTlIwzZwwMYag7oBXgh)6l89h28g2br1qEFLDUm9F)4JIRSYC6wqQldxpoEVz5Nys41hojC4yK(b9E7UP3Pz4oo73DDKL7GagRgnL0(Dw2pNOxIOxjVJVfKTJ1)ZiT)Q(bBOy(4rU4TJFPgdJ08AxBtAsiWf0OFM1(H(E8x(nFNpCPYoq(psJ)pm5nT8O))d]] )
 
