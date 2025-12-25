@@ -558,7 +558,7 @@ spec:RegisterAuras( {
         duration = function() return glyph.serpent_sting.enabled and 21 or 15 end,
         tick_time = 3,
         max_stack = 1,
-        copy = { 1978, 13549, 13550, 13551, 13552, 13553, 13554, 13555, 25295, 27016, 49000, 49001 },
+        copy = { 1978, 13549, 13550, 13551, 13552, 13553, 13554, 13555, 25295, 27016, 49000, 49001, "serpent_stin" },
     },
     -- Silenced.
     silencing_shot = {
@@ -829,6 +829,16 @@ spec:RegisterStateExpr( "auto_shot_cast_remains", function()
     if time_to_auto > 0.5 then return 0 end
     return time_to_auto
 end )
+
+-- 宠物血量百分比表达式，方便管理宠物血量
+spec:RegisterStateExpr("pet_health_pct", function()
+    -- 边缘情况处理：如果宠物不存在或已死亡，返回0
+    if not UnitExists("pet") or UnitIsDead("pet") then
+        return 0
+    end
+    -- 计算血量百分比：(当前血量 / 最大血量) * 100
+    return (UnitHealth("pet") / UnitHealthMax("pet")) * 100
+end)
 
 
 local finish_raptor = setfenv( function()
@@ -1420,7 +1430,7 @@ spec:RegisterAbilities( {
             cool_traps()
         end,
 
-        copy = { 13813, 14316, 14317, 27025, 49066, 49067, 425777 },-- 加入爆炸陷阱发射器425777，修改 by 风雪20250428
+        copy = { 13813, 14316, 14317, 27025, 49066, 49067, 425777, "explosive_trap_launcher" },-- 加入爆炸陷阱发射器425777和别名，修改 by 风雪20250428
     },
 
 
@@ -2415,17 +2425,11 @@ spec:RegisterPackSelector( "survival", "生存(黑科研)", "|T132215:0|t 生存
     end )
 
 -------------------以下是修改部分 by [黑科力研究所]风雪-------------------------------------	
-spec:RegisterSetting( "steal_black_arrow", false, {
-    type = "toggle",
-    name = "|T136181:0|t战斗开始后偷黑箭",
-    desc = "启用后，战斗前放置的爆炸陷阱生效后，目标带爆炸陷阱效果时，施放黑箭|T136181:0|t,默认关闭。",
-    width = "full",
-} )
 
-spec:RegisterSetting( "black_arrow_on_moving", false, {
+spec:RegisterSetting( "black_arrow_on_moving", true, {
     type = "toggle",
     name = "|T136181:0|tBOSS大范围移动时使用黑箭",
-    desc = "启用后，当BOSS持续移动超过设定时间后，优先推荐黑箭（单体情况下）。",
+    desc = "启用后，当BOSS持续移动超过5秒时，优先推荐黑箭（单体情况下）。",
     width = "full",
 } )
 
@@ -2497,6 +2501,13 @@ spec:RegisterSetting( "stings_ttd", 6, {
     min = 0,
     softMax = 10,
     step = 0.5,
+} )
+
+spec:RegisterSetting( "steal_black_arrow", false, {
+    type = "toggle",
+    name = "战斗开始后偷黑箭|T136181:0|t",
+    desc = "启用后，战斗前放置的爆炸陷阱生效后，目标带爆炸陷阱效果时，施放黑箭|T136181:0|t,默认关闭。",
+    width = "full",
 } )
 
 spec:RegisterSetting( "ULD", nil, {

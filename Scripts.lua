@@ -297,7 +297,8 @@ end
 -- Convert SimC syntax to Lua conditionals.
 local function SimToLua( str, modifier )
     -- If no conditions were provided, function should return true.
-    if not str or type( str ) == "number" then return str end
+    if str == nil or type( str ) == "number" then return str end
+    if type( str ) == "boolean" then return tostring( str ) end
 
     local orig = str
     str = str:trim()

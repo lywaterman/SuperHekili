@@ -150,7 +150,7 @@ spec:RegisterAuras( {
         duration = function() return ( 18 * haste)	end,
         tick_time = function() return ( 3 * haste)	end,
         max_stack = 1,
-        shared = "target",
+        --shared = "target",--删除共享标签，腐蚀术
         copy = { 172, 6222, 6223, 7648, 11671, 11672, 25311, 27216, 47812, 47813 },
     },
     -- $o1 Shadow damage over $d.
@@ -159,7 +159,7 @@ spec:RegisterAuras( {
         duration = function() return glyph.curse_of_agony.enabled and 28 or 24 end,
         tick_time = 2,
         max_stack = 1,
-        shared = "target",
+        --shared = "target",--删除共享标签，痛苦诅咒
         copy = { 980, 1014, 6217, 11711, 11712, 11713, 27218, 47863, 47864 },
     },
     -- Causes $s1 Shadow damage after $d.
@@ -175,7 +175,6 @@ spec:RegisterAuras( {
         id = 18223,
         duration = 12,
         max_stack = 1,
-        shared = "target",
     },
     -- Reduces Arcane, Fire, Frost, Nature and Shadow resistances by $s1.  Increases magic damage taken by $s2%.
     curse_of_the_elements = {
@@ -772,6 +771,16 @@ end )
 
 spec:RegisterStateExpr("inferno_enabled", function()
     return settings.inferno_enabled
+end)
+
+-- 宠物血量百分比表达式，方便管理宠物血量
+spec:RegisterStateExpr("pet_health_pct", function()
+    -- 边缘情况处理：如果宠物不存在或已死亡，返回0
+    if not UnitExists("pet") or UnitIsDead("pet") then
+        return 0
+    end
+    -- 计算血量百分比：(当前血量 / 最大血量) * 100
+    return (UnitHealth("pet") / UnitHealthMax("pet")) * 100
 end)
 
 
