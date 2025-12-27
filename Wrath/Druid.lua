@@ -933,6 +933,7 @@ spec:RegisterAuras( {
         id = 9634,
         duration = 3600,
         max_stack = 1,
+        copy = { 9634, 5487, "bear_form" }, -- 添加普通熊形态ID，让40级前也能识别
     },
     -- Increases spell damage taken by $s1%.
     earth_and_moon = {
@@ -2926,6 +2927,55 @@ spec:RegisterAbilities( {
 
         copy = { 5177, 5178, 5179, 5180, 6780, 8905, 9912, 26984, 26985, 48459, 48461 },
     },
+
+    -- 自动攻击 - 后备技能
+    auto_attack = {
+        id = 6603,
+        cast = 0,
+        cooldown = 0,
+        gcd = "off",
+
+        startsCombat = true,
+        texture = 135641,
+
+        handler = function()
+        end
+    },
+
+    -- 颅骨猛击 - 野性德鲁伊打断技能 (猫形态/熊形态)
+    -- Skull Bash - Feral Druid interrupt (Cat/Bear Form)
+    skull_bash = {
+        id = 80964,  -- WotLK 版本可能使用不同 ID，这里使用通用 ID
+        cast = 0,
+        cooldown = 10,
+        gcd = "off",
+
+        spend = function()
+            if buff.cat_form.up then return 25 end
+            if buff.bear_form.up then return 10 end
+            return 0
+        end,
+        spendType = function()
+            if buff.cat_form.up then return "energy" end
+            if buff.bear_form.up then return "rage" end
+            return "mana"
+        end,
+
+        startsCombat = true,
+        texture = 236946,
+
+        toggle = "interrupts",
+        debuff = "casting",
+        readyTime = state.timeToInterrupt,
+
+        usable = function()
+            return buff.cat_form.up or buff.bear_form.up, "requires cat or bear form"
+        end,
+
+        handler = function()
+            interrupt()
+        end,
+    },
 } )
 
 
@@ -2947,7 +2997,7 @@ spec:RegisterSetting( "druid_feral_description", nil, {
 } )
 
 -- TODO:
-spec:RegisterSetting( "min_roar_offset", 25, {
+spec:RegisterSetting( "min_roar_offset", 24, {
     type = "range",
     name = strformat( "使用 %s 前 %s 的最少时间", Hekili:GetSpellLinkWithTexture( spec.abilities.savage_roar.id ), Hekili:GetSpellLinkWithTexture( spec.abilities.rip.id ) ),
     desc = strformat( "设置推荐 %s 所需的当前 %s 持续时间的最小秒数。\n\n"..
@@ -3011,24 +3061,24 @@ spec:RegisterSetting( "ferociousbite_enabled", true, {
     width = "full",
 } )
 
-spec:RegisterSetting( "min_bite_sr_remains", 8, {
+spec:RegisterSetting( "min_bite_sr_remains", 4, {
     type = "range",
     name = strformat( "使用 %s 前 %s 的最少时间", Hekili:GetSpellLinkWithTexture( spec.abilities.ferocious_bite.id ), Hekili:GetSpellLinkWithTexture( spec.abilities.savage_roar.id ) ), --修改by 风雪20250701
     desc = strformat( "如果设置大于0，除非 %s 还有设定值的持续时间，否则不会推荐 %s。\n\n" ..
         "建议值: 4-8, 取决于角色的装备等级\n\n" ..
-        "默认值: 8", Hekili:GetSpellLinkWithTexture( spec.abilities.savage_roar.id ), Hekili:GetSpellLinkWithTexture( spec.abilities.ferocious_bite.id ) ), --修改by 风雪20250701
+        "默认值: 4", Hekili:GetSpellLinkWithTexture( spec.abilities.savage_roar.id ), Hekili:GetSpellLinkWithTexture( spec.abilities.ferocious_bite.id ) ), --修改by 风雪20250701
     width = "full",
     min = 0,
     softMax = 14,
     step = 1
 } )
 
-spec:RegisterSetting( "min_bite_rip_remains", 8, {
+spec:RegisterSetting( "min_bite_rip_remains", 4, {
     type = "range",
     name = strformat( "使用 %s 前 %s 的最少时间", Hekili:GetSpellLinkWithTexture( spec.abilities.ferocious_bite.id ), Hekili:GetSpellLinkWithTexture( spec.abilities.rip.id ) ), --修改by 风雪20250701
     desc = strformat( "如果设置大于0，除非 %s 还有设定值的持续时间，否则不会推荐 %s。\n\n" ..
         "建议值: 4-8, 取决于角色的装备等级\n\n" ..
-        "默认值: 8", Hekili:GetSpellLinkWithTexture( spec.abilities.rip.id ), Hekili:GetSpellLinkWithTexture( spec.abilities.ferocious_bite.id ) ), --修改by 风雪20250701
+        "默认值: 4", Hekili:GetSpellLinkWithTexture( spec.abilities.rip.id ), Hekili:GetSpellLinkWithTexture( spec.abilities.ferocious_bite.id ) ), --修改by 风雪20250701
     width = "full",
     min = 0,
     softMax = 14,
@@ -3147,7 +3197,7 @@ spec:RegisterOptions( {
 -- Default Packs
 spec:RegisterPack( "平衡(黑科研)", 20250820, [[Hekili:9IvtZnXrt4Fl(Ik7kgfjBmWHiFiCj4dKdIZ7UJwnsAlVFOS7SsLRs1wcsCSnVycoXHYGnfMcsGaHWBkQIySX2)ySwTIt8xi9SJwTFRvKKIl2sZ09t)0Fm9mT4kYDnUYvrem3vNRWClu4sZviFXcN)cZXvMSstmx5MiXLr1HpOIuG)A)2xp4rpA63F0wopDlN93EgQeRiRHQsbYqZuxeKITT9n3fKW53Et)n6YvUIPKm5kQCvczVlwybqTMyrURwSix5gsvRIzYGne5kp40717GN3)MDh8Th37D7yV66oh(03V6Moh)h2p8WEhE7VcVSKSu))Cd7BDxNnw3E930749oR7nSwYAP4S4SU3zWoBn4hwJc02p8SUB5rcQ8dE8Q2pzTZFTIfC1E3FU)Dx7dV7(935Hdo5)B)G9hCNJpR71HV6C9xaFyW9EHZjpXAj7tEUZTFvVJ(FohTjiU1sfPBE6UdUFx7n2S)lFS9bhWK5dV7w27UFVd(P(V(zm4h8xpW5xpQ4LC2)60n37zx5YxU3bV0(WTD2(z9oyZ(78kNnER96VW(TN2)17cow)9(9Hg84tbzaSh80VJXjgKUo)Cuka2)j3DWJ(fgrT)XB1FV1hsDyRVFva)3V2n7V9jmb829gqkvxRMKmKirIejnvJ8n1XIAkvqKpR0NRG0xMxRgpPbMVTKC1zLQvAkZM5MQIzTA5RlvJeC38MnTwkjyin00vngQCYIOOPPUSKkFnnDLXkytn6A0S2WDH1erYY8SVYllzqMLwaxssvIeukDt14cH0WuZrxVfMhRIvKWgloFM6z0e5YZwiDjufzCE6c8QATZuZAsgncq)8uAcY6betiztvKoVhMZ2cjBIl5g0XIYsnnW8UsekINiqgAYzaKRetaqHHyKFhMPD64hqcz5mqNgucG(uPaFUP(NbpdfrKkpuUlME4ugzq4rnBklHRwQqNoFJjwFfEIKc(Czi9ILMVqwrqxgposWsftkjIl9eqcwKis4Euq1B9CrI)EKEI8WmbF6ijrp070jAE3BNzcEGHIdyAdcsVMKU7XxwCb0bBW3whrAa1Z5MokAEeOtN4YRJvqsQgFbZi59apFDXQD6OO1ssT(mXOaTPLhfMQk2fvV1OmGPxm1GECIyAJtveXuhNSNbT0IRicRlH5hzsQtsqYyvsEjfio1cxLpGm5XQuVhCG66AMn5vWkvW6glwAH0DjigGfj8gTrd7dp0TcUEOMfd1dEbrdWZPQWGoxDzyP8dx3JkF0HWusH5IkQx(B(ywWn)gQvDyOgBHvKkvFD81I2cc0Qb8ekD41nqkajkILXGzH9N10GMQRXdfsLk6xRgPlEUewDOlTObMqGaQH3zcnn5QATHRuW42OvIre2fKF6Tl1GseSIXNEtNvRGykmHv5qlKePUxdKe5(fNjM5IxcM2Txj4qPCvyWsq4rmHpcMXzpM8XBZWwVHPUUe05fEtylOKg2j4d4HqJkn1Wv(kkn10jaUcxWsGbHLa9Dog5TwIRS7NOtkqp0a))QUZFmKlCFjxzrDOCb8nUYtzjajjHCwctBjmbn0Se60XsiutnlHflzjSaBNH9DfMX7vTaj8rHJa(Z44s82qUClL(h(2WtbQbMpvdKjmUvlumo)eqYO9Ldr0WnT8TqqLOgAHSjBAq5vPcWqOtYvdzkt8Y2U)HecAAVH2nGboG72nONXPcncn4rf6A8v00OLoLd0hXvkFAb2Hcby76ycVKbufKuw1d2OZhWko5zJ5sFjZeMX8o75JCKx4hcyQ0jLgNeDDpZ4gshn7ZKEec(uAtNfOunYGDzEMiOYSX5gFmlIkbhVJ5xUrNX6sP0SmHdkPZ8uAEMw9RBTqcKsdCf4ojF18WL(j4rU0FYJeUNWvUHz0ieibw)rAeV52cAKirQeYqzBK0UVXTZAQ5KaCiG1Jw6NT1NkwFwFcWkUNakmQnvc92YMczmPNLaCrtbw4WF0mlHZn8C340KEh18fIxw4nNdLWx4FhHJpv4Ks4K0moHdpYgLWx8JMWTIosys3VoYeXIwbtVx6)iJpDScRrZ86g4Ixx6V)mXJpbOOBJLkidC1VwnXFuvKjTHkx5G)CLUAX93]] )
 
-spec:RegisterPack( "野性(黑科研)", 20251227, [[Hekili:9M1YoUTnx4NLSjWUbJHSZ4mjaZKfnR6MSrDTOPLOSjgjrbsQXXadm6UUlab4Fx3uGUia9vOVpnyEl(phQB0YKYotrlgmyS5LZ5Jh(DUXjAE0phfQ3xYIclPX3t3y(W(mbnbNjJR0k8dLswSiFnvdF5JMnXkORZyjr)yuySKRzsonk8fhwvvEy1lpSc(06Q00zB4PAIiLO3Yi74zjZQkJcPXAUOikmNkV3EYiD0hxmUW73SERqwOWT86Vd8KWLmYAgvssfY8JqtmvBgef51dez7AkfM)QHFcnsrtlUNqfmx2LkfdoDPKnXjrHZTXLMNZoS62dRMh0lBwHeT)oSbTRyntQyY7DEM3hNXa0i3WGBmakJODunZIRKswH(WQ3Fy1BcSVtQYCzbovbT7qTJxwBthyxCztqgfPGMZSTF8cU2(EilJu)fcU8XzfBY2xUDMiNvGmP4mkmZ(znl9OREa)uzmvP5fBo6IpLcIIrsrQrktsZCzGF2xM(OswxMlVyDDYvxT0MH3AZuLSIKx9aybqjnBDf4srYOXWrsZiXcLUFYCkVqd)oy(oXvSjR(oTwQNYpEJ3BKoDWYzaBPiEFNs6ft3iGOUXJfYcf4YERNL5867DNhEhBFoS6XhpSYV9Xn0HRCF6zuVmV(m1(coCCEGMvbGyscZqM1saCarMKuLNVhOZV81bbtFS2)CgsjjAbjHdBP2B7OHAHr7X1LlwJcFrJcBp1GQEC4qknK742LTQ6ydRBTn09QrBn8VEjJKVFyYYRCQYPrHcWpwX080grqyzkqobo0655aUpagpdxEYTwips7LdXSKHSk1TV17mDsYXf4imsBd7WyjJzy)hB(CGjpGTZiomUrd(oLL51iD9SLpld4yHJSSG66kb8KtV3iG1djiLc4GQ69ZV7WQatwNj9jEu0hGybePaIMILJGbAozIMtGjrYIPgrO1jMahw5AL07D6S2dRA9(SuZRYaBcyFSct1VZVVCIScWwVV3SaA71bxnXvEydgMVSgVbtTkWJVbsrssRK7DwqIxLzI1AeBSqKLi2vmZsw9MG3FhQ4lkJ8ik7UUKW1b1bYtT3L1nG3sp62Y4PuF2f5yMZXLHBeFMCQdZtFuD2xeeBCBPYCHKizjv1W4CfJPX4dPqHhoZm2UtKncakxnUdYwgntVDwzCdT8icauCkopMyTRu)tO9TlVFfd5M(DmGGTK1IIkfqjzYBmNqY1LXMihZRJCuNG3IX26nFj0zlhOTqFDs4ILLaLthZYWyEna2p)2DxsgGHdSJrFaToT7Dyb948wXvLvfdlL3plFev)cNA3mfk(hGexfSCotz8(VUdUKCrcRUWkFiUVfUXqTFU)Zd1FpGBuGnSQ4baRTP2wi5WAT4iT2M7BmD6V46H6COOhvSJum9GE)TAvxBZ7gnH9ffH6z0PO)qnQTIkOGWJo32VYWLNpTZZ3UZmBK5VFt)c90xhXv2Jb9XCNREoN4bFDuox9uEAg)2ElhgDQFE7gcRluZ1D()P1Lm6dwDrCoVzfRlpRULorLwXtylodz0)BHDrqXRHODUMAKgP0I3U8mq0FHCGs2r5g)dIo1OGgBJKxoejEDsVOY4CxBU3kF9N06ua6SMFxJ3K5(QjWMj50p189xb1iGhkfkusgJTJUhQu)2Uwl8T8COFluWi3hgSElkjPGTJKuvN8)itOZgdqpCOLaVMc)zc7BWYSwFcWFgl8Gvi2zLKGxoE(MUZoWUeXCrLAnmf5sz1tmRgIi3xUooWAgWabaZlTg0qkrx)6UMM42NOB5GbhZ53mNv4JoKsW1D(8EneS6yFDbfA7zR9i253KMEs8YM2lM7p1ytIkS7YbbLWHgQ03nQsBBrD()2bgpj2dqCFxWzc(mF0)zbwhO6lz2NIzkfHDCFEBbSCUE8SMzi)OpB5jq0Q)8U(bC0E7n3ulPHtH7jiyQfBZGvZb337q3Uctc1Duj(QIQOqiYg(cjFCrWILZxS4gydv4)YLOWN(Jp)0V9NrHpahlucwlrjQKXmCZ4tHP)PIO1WGLSyd7lClpjHzglHPIJc)GiVKBUVxV)WQpKrRsalnkURMV4kuGLsrkhF8jeChdOzbbZx29MJp9RF(V)LVo5P)6lF7RF5B)()BkSHO))d]] )
+spec:RegisterPack( "野性(黑科研)", 20251227, [[Hekili:9MvZUXTnq4NLCjyDdSG2nEJJbSZHMt9sUOEwC5knAxbljkqs5nlGXIER3cqa6TEPa9qa6RqFFAGFl6qQ)O0sQDTbArqGTfjN5JZ8n)jfop8NddK7lHWGsA090n4VetLq4Nw4Vy58flU2Z)MLxTyPA99zmAS6azPcPq9lLCiILVMkX)4tAzbf01zqC4pggeXtLapLgg8QdRQkpS61hwH)26QKeVnPjsclHi3cKDPzXEvLHb0izkRimiNYV3CXqjcNPfE)HLBz8cH6iV9zGN4uoqwduojHXZhGMiQu)qLiVAKiB3tjt)tj(VaTuK0I7jugyZUuja82Lq2efhgm3exY0C4WQBpSAUFVSHcUYTyXg0UJ1axa87TEN3hLbiA4Ba0JHqzcTRuJxufNdfYdR(WHvVZ30NuLzZcCScApHyxAzTnDKDXMnrXOif0CW0(LwKkn9dzzK6)GO2(0SInz7l36XYHcftkkJIRS3RzRdC9i(P8iQqMwSzGJpHIIcijkQrcWPz2mWVyNPlQKHZC5zRRJCD1sZt518eLqr8BEaTakj5TUcdPiz0i8kjbseti7xmNMwiX)pA9oXvSjR2Nwl1J5hVZPhPthqoGSLIO9DkPxmDpbf11oSqgOqTT37yBwDF3CA4n0(Cy1JpEyLB7JDOJUCx6zYOmNXm1XcwcCEGMvHGywmOjZsocoKitIRYZ3J05x)wF)lESo(0trjjsgjofpsD02Gh1cJ2RRTqSgf(Qgf2ERrv944hjKyjLBx2QQHgw7ABC4LwBeitG73Vt5n0XEfP4I)WSLxAfbxyrvbmmqxaY0KZGdy)cOJmSfj3AHCiTxpgKCqXQe3(ENR0jjloWjyKMg2X5sEgg2NV5ZcMCa2oJ448gna6ywMtJ0vElFrgWPshzybL1Dc4OMEVrq1peJuYWlQOpo)UdR81vDM1x4rqFaZfq4mmBQQDevIMJwO5gOlKS4cTiKYyDIJ5hLseb40vfR1(lszVjdTmOvYizv)jFEvgHc0IVV34GA7T(xoZw1yngMVSgV(grYY0nyHsssfFV12sCQmDgxTyJySSy2Ucpdz1Bc(WDkfFw1LNqz31vkUo1o6HQdQm8aoBaP7itxy9f3QJEnlod7i(evwhxTEq32NfeBcEP8CgNWH4QAyCQwYKQSejy7hwRp2EsfBebuUy6aKTantU1RmQHwoGaGTOQwxvETRH)JO9TBVFhJ5MUdmWmQK1SIkbsjb(16Bi5QYiD(J515pQlZBWyBJMph6Sra0wCOpo6yHySP6iitL5RbWU532Nvsdm1d2b0huwN2ZoUTE16gzx5vfJBO3nlFcv)kRAxVKs8pG15kG8uqOJ(VQdUKCwmu3ELle3pi3uO2n3)LH6Nd4MeyJ7nEeWAhTTfswSwlgO12kGtPt3TypwNJf9KIDIwQh9gamgyxAY7MSS9zLH6fmVO7unITSkSTWb3BZ31W5xpTlY3C(mtK5EQt3c943rITQhJMM5oBtEoZb(6OC2MS84k(Ttyoo70OEG6hEkY(RL6)1(sM81wDwCoNvfRBpREWowLuKgdlobz09Be7SGItdr7An9inrRfVF5jGO7g5qLSJMQJpiYeTcASn80YXiXzq6z1gN9o0D25R7IwhdqRD(B75nvUVCgEyso9Zn)9BWEeuxkHsOKma2r3JDQFB3agU2Eoo1LsWkUp(W6Ji4KcyhjUQU4)atO1bdur44ibonfURe2pMLEVUeG7kwQlwbBNrrI0YPR30D3r2flkLvjwJlroxw9m9UXmY9TRREWAazGiGtlnEOMuQc9RNAAM9yIUTJgCvn)M1msF0HuIAFNUUxdbRo3xxsH2z2AVIDXnjjUMzCU7sJnfQ407HrjLupASsVzsLQoHwD)xNy8OCpiX9g)tK8z(KFYaJluTtg(Ceieey4CEBrSCQz8mwzm)OVA5rq0y(8U5bSmE71xxlPXlPoJV)fgSnnw1xCxVn62DOlOUJYvVBrryaUHk1hAjm4P)8lp97)fUrwfpcuROEBxYFQiCn(WsistTc2Mghd6NfdIOWGpYYlt1oZ17pS6Jz0Qy0mQ(MtxoFXLlUom4b0UOGq3hIs91MyjPzALm8BuPaxDxKp9RF5F(LVn7P)(RF)BF97)XVDbUu4)o]] )
 
 spec:RegisterPack( "守护(黑科研)", 20230613, [[Hekili:vI1wpnoou4Fl8cIoW0nfOfwj68Wk0kb7kMrkODFZjUooflsIJCCaXQQ8BFp2oxCsC6LhMrPoh)DoNVZvcAb6vKFewsrVCT3134TAXnZxCR3QRVg5l)kNI8ZXK3XBHhYWPW))NuboPk8vC27vHx80)mtjXxjCCKcPcEPGasH83uYsKpLH24g(fGS5uc6LfWtVXIIOgrPfeK))YL)9FvfwRQhfLSOgn(lbJlysgTO65QNFLVDBcTkeh9boJqbPeCjwY4zWtucpnLMfP)Drvidou(ginjbxa)MNRFXCWbe8ywcy2yI5OC9L3GLxU(3sXI3d4XbWvd(KLeDflE9zL5NF2MY445BzXs73oVmV6zxWiFJlYkQVSBrIycAWgkweeZfP7v0CU2jFU9TWzeCssG5NbjSc5vQa2AwgtAlvzbnGjPPf2h2ax3jVbXEbeHOraKeAcekuV6k115XXbBjrRxyFbrz2yLRDgmNQ8fnD13fbY6C1D(GgqZOPqq9h3EuyonE2xFc(SJrvCdi3hybdVjHAWxYsPbsEqeJE1h4Ks66lIOALjfy4gzBdIktt)sz8345nB3ojwSLkNBDXdOcvTruqcMOy1gTCwTwAogWF3UHNviHQXhwEs4hq4a3XZxxqLSyfn0i9CNgIbAlDMdfrF7ILF3PXmZCRaAsbDT3bmSuGaLW)g57tyrNpuLcQcIIhUFY30I0Xhogzv7HXMYdCsANc1qtPqwug5RHipoTysF)25lprEPZOu1jGrfJPcgniwv6eR6)Q8EOEhArskc4CsDFpscipbxiH6HE98QXHMjGHg9BxOGsP9hw4ns(nq3gQ49rNNIltgJIc75KsHGMj)rn1RK0q7xor2KoSE50HsZ7BHldgTOBFyqDKP1gNSZpghgD4sTiFy6)40AF)C3UP9Xr4v8jl3ymJi2vEdtqu9Yp1GB9DCgGRFNoit(cYPcm9sla82FqFLBTy5ndWd5)bybG81BIS07oK)NyHQHEbY)P0CUqQ2GyjSoHg4Qq1qNI5vpJ81pPxvIgdgReE8f9Qt0mfphH(JMLhq(dNdBUDGz9jvTpsc2G6Yn3ODMSnEGq3ylKzg9ajUvjHftPSQ2BmXm8bqSCGBqG1RGKqSAfoNtydp3WqDtTRc)rv4TDkEWC7EeqtWsP6vNOQpEnOq)Ujr)SQqBW6RhKk(yItocYC4EWuHUl3uQPEcAxJ8VOkCQ9f0uhSZqv4SQWD7G1rhT5GgWAhX(4MuMtYuoR1uSMEy0SZz5vHpa5)2Mq)glT5KJTcwSB7Wnq6oT2rKj6Kv7j6jOiFVwhZ502QWVb)fj6c4VpPdoRTQ5uzYjmrDmDIHUA(8(dkHRrZ2C3OM4UkBpY4G7HEodfJv7PenCvFFyE2v66bypyPNdkZHy4XtTnDb0TsC0fOJTSxnsBgqMIRfK685rJ4DvB3PaLfR9HfEDyygapQZ)Wrg1ZCDnZWPUSNWQ7Pxhz7wTQk8YjRe0zs9fWD2MwMwOhSMvN1R0QlxC6bw7zlSoyTlIwzZwwMYag7oBXgh)6l89h28g2br1qEFLDUm9F)4JIRSYC6wqQldxpoEVz5Nys41hojC4yK(b9E7UP3Pz4oo73DDKL7GagRgnL0(Dw2pNOxIOxjVJVfKTJ1)ZiT)Q(bBOy(4rU4TJFPgdJ08AxBtAsiWf0OFM1(H(E8x(nFNpCPYoq(psJ)pm5nT8O))d]] )
 
@@ -3169,4 +3219,21 @@ spec:RegisterPackSelector( "feral_tank", "守护(黑科研)", "|T132276:0|t 守�
     "如果你在|T132276:0|t野性天赋中投入的点数多于其他天赋，并且选择了厚皮，将会为你自动选择该优先级。",
     function( tab1, tab2, tab3 )
         return tab2 > max( tab1, tab3 ) and (talent.thick_hide.rank + talent.natural_reaction.rank + talent.protector_of_the_pack.rank) >= 6
+    end )
+
+
+spec:RegisterPack( "平衡PVP(黑科研)", 20251225, [[Hekili:druid_balance_pvp]] )
+
+spec:RegisterPack( "野性PVP(黑科研)", 20251225, [[Hekili:druid_feral_pvp]] )
+
+spec:RegisterPackSelector( "balance_pvp", "平衡PVP(黑科研)", "|T136096:0|t 平衡PVP",
+    "PVP专用平衡天赋优先级，适用于战场和竞技场。",
+    function( tab1, tab2, tab3 )
+        return false
+    end )
+
+spec:RegisterPackSelector( "feral_pvp", "野性PVP(黑科研)", "|T132115:0|t 野性PVP",
+    "PVP专用野性天赋优先级，适用于战场和竞技场。",
+    function( tab1, tab2, tab3 )
+        return false
     end )

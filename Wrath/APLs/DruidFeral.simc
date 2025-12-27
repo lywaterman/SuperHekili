@@ -28,7 +28,7 @@ actions.cat+=/faerie_fire_feral,if=!glyph.omen_of_clarity.enabled&!debuff.armor_
 # actions.cat+=/gift_of_the_wild,if=should_flowerweave&mana.pct>settings.min_weave_mana&energy.current<42
 actions.cat+=/shred,if=!wait_for_ff&(excess_e>=action.shred.spend|buff.clearcasting.up|buff.berserk.up|(cooldown.faerie_fire_feral.remains<=1&energy.current>77|energy.current=100))
 actions.cat+=/shred
-actions.cat_aoe+=/rake,if=combo_points.current=0&(!buff.savage_roar.up|buff.savage_roar.remains<2)&ttd>1
+actions.cat_aoe+=/mangle_cat,if=combo_points.current=0&(!buff.savage_roar.up|buff.savage_roar.remains<2)&ttd>1
 actions.cat_aoe+=/savage_roar,if=(!up|buff.savage_roar.remains<2)&ttd>1+latency
 actions.cat_aoe+=/tigers_fury,use_off_gcd=1,if=energy.current<30-(buff.clearcasting.up&15|0)
 actions.cat_aoe+=/berserk,if=energy.current>60&cooldown.tigers_fury.remains>=15
