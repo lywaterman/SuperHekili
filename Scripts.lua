@@ -297,7 +297,8 @@ end
 -- Convert SimC syntax to Lua conditionals.
 local function SimToLua( str, modifier )
     -- If no conditions were provided, function should return true.
-    if not str or type( str ) == "number" then return str end
+    if str == nil or type( str ) == "number" then return str end
+    if type( str ) == "boolean" then return tostring( str ) end
 
     local orig = str
     str = str:trim()
@@ -661,6 +662,8 @@ do
 
         local recheck
 
+        -- 先将 or/and 转换为 |/& 再去掉空格，避免 "5 or target" 变成 "5ortarget"
+        conditions = conditions:gsub( " or ", "|" ):gsub( " and ", "&" )
         conditions = conditions:gsub( " +", "" )
         conditions = self:EmulateSyntax( conditions, true )
 
